@@ -1,17 +1,14 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Code2, FileCode, GitBranch, Languages, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { StatsCard } from "@/components/stats-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { RepositoryCard } from "@/components/repository-card";
-import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Octokit } from "octokit";
-
-const octokit = new Octokit();
+import { octokit, isAuthenticated } from "@/utils/github";
+import { GitHubAuth } from "@/components/github-auth";
+import { StatsDisplay } from "@/components/stats-display";
 
 const MIN_USERNAME_LENGTH = 3;
 const DEBOUNCE_DELAY = 500; // ms
@@ -22,7 +19,6 @@ const Index = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const { toast } = useToast();
 
-  // Debounce username changes
   useEffect(() => {
     if (username.length >= MIN_USERNAME_LENGTH) {
       const timeoutId = setTimeout(() => {
@@ -43,7 +39,7 @@ const Index = () => {
       });
       return response.data;
     },
-    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH,
+    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH && isAuthenticated(),
     meta: {
       onError: () => {
         toast({
@@ -65,7 +61,6 @@ const Index = () => {
         sort: 'updated',
       });
       
-      // Get LOC for each repo
       const reposWithLoc = await Promise.all(
         response.data.map(async (repo) => {
           try {
@@ -94,7 +89,7 @@ const Index = () => {
       
       return reposWithLoc;
     },
-    enabled: !!userData,
+    enabled: !!userData && isAuthenticated(),
   });
 
   const years = Array.from(
@@ -122,6 +117,8 @@ const Index = () => {
             </p>
           </div>
 
+          <GitHubAuth />
+
           <div className="relative animate-fade-up">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
@@ -133,6 +130,7 @@ const Index = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               minLength={MIN_USERNAME_LENGTH}
+              disabled={!isAuthenticated()}
             />
             <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-[180px] mt-4">
@@ -156,28 +154,12 @@ const Index = () => {
 
           {userData && reposData && (
             <div className="space-y-8 animate-fade-up">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <StatsCard
-                  title="Total Repositories"
-                  value={reposData.length}
-                  icon={<GitBranch className="h-4 w-4 text-blue-500" />}
-                />
-                <StatsCard
-                  title="Languages Used"
-                  value={new Set(reposData.map((repo: any) => repo.language).filter(Boolean)).size}
-                  icon={<Languages className="h-4 w-4 text-purple-500" />}
-                />
-                <StatsCard
-                  title="Total Lines of Code"
-                  value={totalLoc.toLocaleString()}
-                  icon={<Code2 className="h-4 w-4 text-green-500" />}
-                />
-                <StatsCard
-                  title="Average LOC/Repo"
-                  value={Math.round(totalLoc / reposData.length).toLocaleString()}
-                  icon={<FileCode className="h-4 w-4 text-pink-500" />}
-                />
-              </div>
+              <StatsDisplay
+                reposCount={reposData.length}
+                languagesCount={new Set(reposData.map((repo: any) => repo.language).filter(Boolean)).size}
+                totalLoc={totalLoc}
+                averageLoc={totalLoc / reposData.length}
+              />
 
               <div className="glass-card p-6 rounded-lg animate-fade-up">
                 <h3 className="text-xl font-semibold mb-4">Lines of Code by Repository</h3>
