@@ -25,8 +25,9 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.75rem;
   }
+}
  
-  .dark {
+.dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -60,7 +61,7 @@
 }
 
 .glass-card {
-  @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
+  @apply bg-white/5 backdrop-blur-lg border border-white/20 shadow-xl hover:bg-white/10 transition-all duration-300;
 }
 
 .animate-in {
@@ -69,4 +70,24 @@
 
 .animate-up {
   animation: fade-up 0.5s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
