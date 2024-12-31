@@ -8,7 +8,7 @@ interface Repository {
   name: string;
   description: string | null;
   stargazers_count?: number;
-  language: string | null;
+  language?: string | null;
   languages?: { [key: string]: number };
   full_name: string;
   owner: {
