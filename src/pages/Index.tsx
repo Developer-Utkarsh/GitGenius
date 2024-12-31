@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Code2, FileCode, GitBranch, Languages } from "lucide-react";
+import { Code2, FileCode, GitBranch, Languages, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/stats-card";
