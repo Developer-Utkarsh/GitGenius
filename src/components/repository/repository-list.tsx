@@ -7,9 +7,15 @@ interface Repository {
   id: number;
   name: string;
   description: string | null;
-  stargazers_count: number;
+  stargazers_count?: number;
   language: string | null;
   languages?: { [key: string]: number };
+  full_name: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
+  private: boolean;
 }
 
 interface RepositoryListProps {
@@ -45,7 +51,7 @@ export const RepositoryList = ({ repositories }: RepositoryListProps) => {
             key={repo.id}
             name={repo.name}
             description={repo.description || "No description available"}
-            stars={repo.stargazers_count}
+            stars={repo.stargazers_count || 0}
             language={repo.language || "Unknown"}
             branches={1}
           />
