@@ -1,9 +1,18 @@
 import { Octokit } from "octokit";
 
-// Initialize Octokit with authentication
-export const octokit = new Octokit({
-  auth: localStorage.getItem("github_token"),
-});
+let octokit: Octokit;
+
+export const initializeOctokit = () => {
+  const token = localStorage.getItem("github_token");
+  octokit = new Octokit({
+    auth: token,
+  });
+};
+
+// Initialize on load
+initializeOctokit();
+
+export { octokit };
 
 export const isAuthenticated = () => {
   return !!localStorage.getItem("github_token");
@@ -11,5 +20,6 @@ export const isAuthenticated = () => {
 
 export const setGithubToken = (token: string) => {
   localStorage.setItem("github_token", token);
-  window.location.reload(); // Reload to reinitialize Octokit with the token
+  initializeOctokit();
+  window.location.reload();
 };

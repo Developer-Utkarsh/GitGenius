@@ -6,9 +6,10 @@ import { Search } from "lucide-react";
 interface Repository {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   stargazers_count: number;
-  language: string;
+  language: string | null;
+  languages?: { [key: string]: number };
 }
 
 interface RepositoryListProps {

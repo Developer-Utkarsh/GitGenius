@@ -14,7 +14,13 @@ export const GitHubAuth = () => {
       setGithubToken(token.trim());
       toast({
         title: "Success",
-        description: "GitHub token has been saved",
+        description: "GitHub token has been saved. You can now make API requests.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Please enter a valid GitHub token",
+        variant: "destructive",
       });
     }
   };
@@ -37,7 +43,7 @@ export const GitHubAuth = () => {
         >
           GitHub Settings
         </a>
-        .
+        . Make sure to select the 'repo' and 'user' scopes.
       </p>
       <form onSubmit={handleSubmit} className="flex gap-4">
         <Input
@@ -46,6 +52,7 @@ export const GitHubAuth = () => {
           onChange={(e) => setToken(e.target.value)}
           placeholder="Enter GitHub token"
           className="flex-1"
+          required
         />
         <Button type="submit">Save Token</Button>
       </form>
