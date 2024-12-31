@@ -26,27 +26,10 @@ const Index = () => {
       return response.data;
     },
     enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH && isAuthenticated(),
-    meta: {
-      onError: (error: any) => {
-        if (error?.status === 404) {
-          toast({
-            title: "User not found",
-            description: "Please check the username and try again.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "An error occurred while fetching user data.",
-            variant: "destructive",
-          });
-        }
-      },
-    },
   });
 
   const { data: reposData, isLoading: reposLoading } = useQuery({
-    queryKey: ["github-repos", debouncedUsername],
+    queryKey: ["github-repos", debouncedUsername, selectedYear],
     queryFn: async () => {
       if (!debouncedUsername) return null;
       const response = await octokit.request('GET /users/{username}/repos', {
@@ -55,29 +38,46 @@ const Index = () => {
         sort: 'updated',
       });
       
-      const reposWithLoc = await Promise.all(
+      const reposWithDetails = await Promise.all(
         response.data.map(async (repo) => {
           try {
-            const languages = await octokit.request('GET /repos/{owner}/{repo}/languages', {
-              owner: debouncedUsername,
-              repo: repo.name,
-            });
+            const [languages, commits, pulls] = await Promise.all([
+              octokit.request('GET /repos/{owner}/{repo}/languages', {
+                owner: debouncedUsername,
+                repo: repo.name,
+              }),
+              octokit.request('GET /repos/{owner}/{repo}/commits', {
+                owner: debouncedUsername,
+                repo: repo.name,
+                since: `${selectedYear}-01-01T00:00:00Z`,
+                until: `${selectedYear}-12-31T23:59:59Z`,
+              }),
+              octokit.request('GET /repos/{owner}/{repo}/pulls', {
+                owner: debouncedUsername,
+                repo: repo.name,
+                state: 'all',
+              }),
+            ]);
             
             return {
               ...repo,
               languages: languages.data,
+              commits: commits.data.length,
+              pulls: pulls.data.length,
             };
           } catch (error) {
-            console.error(`Error fetching languages for ${repo.name}:`, error);
+            console.error(`Error fetching details for ${repo.name}:`, error);
             return {
               ...repo,
               languages: {},
+              commits: 0,
+              pulls: 0,
             };
           }
         })
       );
       
-      return reposWithLoc;
+      return reposWithDetails;
     },
     enabled: !!userData && isAuthenticated(),
   });
@@ -93,6 +93,10 @@ const Index = () => {
     });
     return acc;
   }, {} as Record<string, number>) || {};
+
+  const totalStars = reposData?.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0) || 0;
+  const totalPRs = reposData?.reduce((acc, repo) => acc + (repo.pulls || 0), 0) || 0;
+  const totalCommits = reposData?.reduce((acc, repo) => acc + (repo.commits || 0), 0) || 0;
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -142,6 +146,10 @@ const Index = () => {
               languagesCount={Object.keys(aggregatedLanguages).length}
               totalLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0)}
               averageLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0) / reposData.length}
+              selectedYear={selectedYear}
+              totalStars={totalStars}
+              totalPRs={totalPRs}
+              totalCommits={totalCommits}
             />
 
             <LanguageDistribution languages={aggregatedLanguages} />

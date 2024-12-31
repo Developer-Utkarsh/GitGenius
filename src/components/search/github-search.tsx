@@ -10,19 +10,28 @@ interface GitHubSearchProps {
 }
 
 const USERNAME_REGEX = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
+const DEBOUNCE_DELAY = 1000; // Increased to 1 second
 
 export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchProps) => {
   const [username, setUsername] = useState("");
+  const [debouncedUsername, setDebouncedUsername] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
-    if (username.length >= minLength && USERNAME_REGEX.test(username)) {
-      const timeoutId = setTimeout(() => {
-        onSearch(username);
-      }, 500);
-      return () => clearTimeout(timeoutId);
+    const timeoutId = setTimeout(() => {
+      if (username.length >= minLength && USERNAME_REGEX.test(username)) {
+        setDebouncedUsername(username);
+      }
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timeoutId);
+  }, [username, minLength]);
+
+  useEffect(() => {
+    if (debouncedUsername) {
+      onSearch(debouncedUsername);
     }
-  }, [username, minLength, onSearch]);
+  }, [debouncedUsername, onSearch]);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
