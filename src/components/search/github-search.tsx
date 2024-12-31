@@ -10,7 +10,7 @@ interface GitHubSearchProps {
 }
 
 const USERNAME_REGEX = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
-const DEBOUNCE_DELAY = 1000; // Increased to 1 second
+const DEBOUNCE_DELAY = 1000; // 1 second delay
 
 export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchProps) => {
   const [username, setUsername] = useState("");
@@ -29,9 +29,35 @@ export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchPr
 
   useEffect(() => {
     if (debouncedUsername) {
-      onSearch(debouncedUsername);
+      // Check if username exists before triggering search
+      fetch(`https://api.github.com/users/${debouncedUsername}`)
+        .then(response => {
+          if (response.status === 404) {
+            throw new Error("User not found");
+          }
+          if (!response.ok) {
+            throw new Error("Error checking username");
+          }
+          onSearch(debouncedUsername);
+        })
+        .catch(error => {
+          if (error.message === "User not found") {
+            toast({
+              title: "User not found",
+              description: "The GitHub username you entered does not exist. Please try another username.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: "There was an error checking the username. Please try again.",
+              variant: "destructive",
+            });
+          }
+          setUsername("");
+        });
     }
-  }, [debouncedUsername, onSearch]);
+  }, [debouncedUsername, onSearch, toast]);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
