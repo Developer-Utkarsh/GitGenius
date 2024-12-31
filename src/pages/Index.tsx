@@ -9,34 +9,51 @@ import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [username, setUsername] = useState("");
+  const [debouncedUsername, setDebouncedUsername] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const { toast } = useToast();
 
+  // Handle input changes with debounce
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    // Only update debounced value if username is at least 3 characters
+    if (value.length >= 3) {
+      const timeoutId = setTimeout(() => {
+        setDebouncedUsername(value);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setDebouncedUsername("");
+    }
+  };
+
   const { data: userData, isLoading } = useQuery({
-    queryKey: ["github-user", username],
+    queryKey: ["github-user", debouncedUsername],
     queryFn: async () => {
-      if (!username) return null;
-      const response = await fetch(`https://api.github.com/users/${username}`);
+      if (!debouncedUsername) return null;
+      const response = await fetch(`https://api.github.com/users/${debouncedUsername}`);
       if (!response.ok) {
         throw new Error("User not found");
       }
       return response.json();
     },
-    enabled: !!username,
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "User not found. Please check the username and try again.",
-        variant: "destructive",
-      });
+    enabled: debouncedUsername.length >= 3,
+    meta: {
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "User not found. Please check the username and try again.",
+          variant: "destructive",
+        });
+      },
     },
   });
 
   const { data: reposData } = useQuery({
-    queryKey: ["github-repos", username],
+    queryKey: ["github-repos", debouncedUsername],
     queryFn: async () => {
-      if (!username) return null;
-      const response = await fetch(`https://api.github.com/users/${username}/repos`);
+      if (!debouncedUsername) return null;
+      const response = await fetch(`https://api.github.com/users/${debouncedUsername}/repos`);
       if (!response.ok) {
         throw new Error("Failed to fetch repositories");
       }
@@ -72,7 +89,7 @@ const Index = () => {
               placeholder="Enter GitHub username..."
               className="pl-10 pr-4 py-2 w-full dark:bg-gray-800 dark:border-gray-700"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => handleUsernameChange(e.target.value)}
             />
             <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-[180px] mt-4">
