@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Code2, FileCode, GitBranch, Languages, Search } from "lucide-react";
+import { Code2, FileCode, GitBranch, Languages } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/stats-card";
@@ -13,24 +13,26 @@ import { Octokit } from "octokit";
 
 const octokit = new Octokit();
 
+const MIN_USERNAME_LENGTH = 3;
+const DEBOUNCE_DELAY = 500; // ms
+
 const Index = () => {
   const [username, setUsername] = useState("");
   const [debouncedUsername, setDebouncedUsername] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const { toast } = useToast();
 
-  // Handle input changes with debounce
-  const handleUsernameChange = (value: string) => {
-    setUsername(value);
-    if (value.length >= 3) {
+  // Debounce username changes
+  useEffect(() => {
+    if (username.length >= MIN_USERNAME_LENGTH) {
       const timeoutId = setTimeout(() => {
-        setDebouncedUsername(value);
-      }, 500);
+        setDebouncedUsername(username);
+      }, DEBOUNCE_DELAY);
       return () => clearTimeout(timeoutId);
     } else {
       setDebouncedUsername("");
     }
-  };
+  }, [username]);
 
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ["github-user", debouncedUsername],
@@ -41,7 +43,7 @@ const Index = () => {
       });
       return response.data;
     },
-    enabled: debouncedUsername.length >= 3,
+    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH,
     meta: {
       onError: () => {
         toast({
@@ -129,7 +131,8 @@ const Index = () => {
               placeholder="Enter GitHub username..."
               className="pl-10 pr-4 py-2 w-full dark:bg-gray-800/50 dark:border-gray-700 backdrop-blur-sm"
               value={username}
-              onChange={(e) => handleUsernameChange(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
+              minLength={MIN_USERNAME_LENGTH}
             />
             <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-[180px] mt-4">
