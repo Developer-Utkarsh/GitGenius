@@ -12,6 +12,7 @@ import { StatsDisplay } from "@/components/stats-display";
 
 const MIN_USERNAME_LENGTH = 3;
 const DEBOUNCE_DELAY = 500; // ms
+const USERNAME_REGEX = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
 
 const Index = () => {
   const [username, setUsername] = useState("");
@@ -20,7 +21,7 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (username.length >= MIN_USERNAME_LENGTH) {
+    if (username.length >= MIN_USERNAME_LENGTH && USERNAME_REGEX.test(username)) {
       const timeoutId = setTimeout(() => {
         setDebouncedUsername(username);
       }, DEBOUNCE_DELAY);
@@ -39,14 +40,24 @@ const Index = () => {
       });
       return response.data;
     },
-    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH && isAuthenticated(),
+    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH && 
+             USERNAME_REGEX.test(debouncedUsername) && 
+             isAuthenticated(),
     meta: {
-      onError: () => {
-        toast({
-          title: "Error",
-          description: "User not found. Please check the username and try again.",
-          variant: "destructive",
-        });
+      onError: (error: any) => {
+        if (error?.status === 404) {
+          toast({
+            title: "User not found",
+            description: "Please check the username and try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "An error occurred while fetching user data.",
+            variant: "destructive",
+          });
+        }
       },
     },
   });
@@ -104,6 +115,19 @@ const Index = () => {
 
   const totalLoc = reposData?.reduce((acc, repo) => acc + repo.totalLoc, 0) || 0;
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setUsername(value);
+    
+    if (value && !USERNAME_REGEX.test(value)) {
+      toast({
+        title: "Invalid username",
+        description: "GitHub usernames can only contain alphanumeric characters or hyphens, and cannot begin with a hyphen.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/95 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
@@ -128,8 +152,9 @@ const Index = () => {
               placeholder="Enter GitHub username..."
               className="pl-10 pr-4 py-2 w-full dark:bg-gray-800/50 dark:border-gray-700 backdrop-blur-sm"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={handleUsernameChange}
               minLength={MIN_USERNAME_LENGTH}
+              pattern={USERNAME_REGEX.source}
               disabled={!isAuthenticated()}
             />
             <Select value={selectedYear} onValueChange={setSelectedYear}>
