@@ -43,7 +43,17 @@
 }
 
 .glass-card {
-  @apply bg-white/5 backdrop-blur-lg border border-white/20 shadow-xl hover:bg-white/10 transition-all duration-300;
+  @apply bg-white/5 backdrop-blur-lg border border-white/20 shadow-xl 
+    hover:bg-white/10 transition-all duration-300 
+    hover:border-gradient-to-r hover:from-blue-500/50 hover:to-purple-500/50;
+}
+
+.stats-card {
+  @apply glass-card p-6 rounded-xl relative overflow-hidden
+    before:content-[''] before:absolute before:inset-0 
+    before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10 
+    before:opacity-0 hover:before:opacity-100 before:transition-opacity 
+    before:duration-300 hover:scale-105 hover:shadow-2xl;
 }
 
 .border-gradient-to-r {
@@ -123,3 +133,4 @@
 .text-gradient {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse;
 }
+

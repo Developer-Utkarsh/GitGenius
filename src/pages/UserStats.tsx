@@ -7,10 +7,13 @@ import { RepositoryList } from "@/components/repository/repository-list";
 import { Button } from "@/components/ui/button";
 import { Copy, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { YearSelector } from "@/components/year-selector";
+import { useState } from "react";
 
 const UserStats = () => {
   const { username } = useParams();
   const { toast } = useToast();
+  const [selectedYear, setSelectedYear] = useState("all");
 
   const { data: userData } = useQuery({
     queryKey: ["github-user", username],
@@ -23,8 +26,15 @@ const UserStats = () => {
     },
   });
 
+  const accountCreatedYear = userData ? new Date(userData.created_at).getFullYear() : new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+  const years = Array.from(
+    { length: currentYear - accountCreatedYear + 1 },
+    (_, i) => currentYear - i
+  );
+
   const { data: reposData } = useQuery({
-    queryKey: ["github-repos", username],
+    queryKey: ["github-repos", username, selectedYear],
     queryFn: async () => {
       if (!username) return null;
       const response = await octokit.request('GET /users/{username}/repos', {
@@ -44,6 +54,10 @@ const UserStats = () => {
               octokit.request('GET /repos/{owner}/{repo}/commits', {
                 owner: username,
                 repo: repo.name,
+                ...(selectedYear !== "all" && {
+                  since: `${selectedYear}-01-01T00:00:00Z`,
+                  until: `${selectedYear}-12-31T23:59:59Z`,
+                }),
               }),
               octokit.request('GET /repos/{owner}/{repo}/pulls', {
                 owner: username,
@@ -106,15 +120,23 @@ const UserStats = () => {
           <h1 className="text-4xl font-bold tracking-tight text-gradient">
             {username}'s GitHub Stats
           </h1>
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={handleCopyLink}
-          >
-            <Share2 className="h-4 w-4" />
-            <Copy className="h-4 w-4" />
-            Share Profile
-          </Button>
+          <div className="flex gap-4">
+            <YearSelector
+              years={years}
+              selectedYear={selectedYear}
+              onYearChange={setSelectedYear}
+              accountCreatedYear={accountCreatedYear}
+            />
+            <Button
+              variant="outline"
+              className="gap-2 bg-white/5 hover:bg-white/10"
+              onClick={handleCopyLink}
+            >
+              <Share2 className="h-4 w-4" />
+              <Copy className="h-4 w-4" />
+              Share Profile
+            </Button>
+          </div>
         </div>
 
         <StatsDisplay
@@ -122,7 +144,7 @@ const UserStats = () => {
           languagesCount={Object.keys(aggregatedLanguages).length}
           totalLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0)}
           averageLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0) / reposData.length}
-          selectedYear={new Date().getFullYear().toString()}
+          selectedYear={selectedYear}
           totalStars={reposData.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0)}
           totalPRs={reposData.reduce((acc, repo) => acc + (repo.pulls || 0), 0)}
           totalCommits={reposData.reduce((acc, repo) => acc + (repo.commits || 0), 0)}

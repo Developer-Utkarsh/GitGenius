@@ -11,17 +11,19 @@ interface StatsCardProps {
 
 export const StatsCard = ({ title, value, icon, description, tooltip }: StatsCardProps) => {
   const content = (
-    <Card className="glass-card hover:scale-105 transition-all duration-300 animate-up">
+    <Card className="stats-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-gray-400">{title}</CardTitle>
-        <div className="text-primary/80">{icon}</div>
+        <CardTitle className="text-sm font-medium bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
+          {title}
+        </CardTitle>
+        <div className="text-primary/80 animate-pulse">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
+        <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
           {value}
         </div>
         {description && (
-          <p className="text-xs text-gray-400 mt-1">{description}</p>
+          <p className="text-xs text-gray-400 mt-1 animate-fade-in">{description}</p>
         )}
       </CardContent>
     </Card>
@@ -31,7 +33,7 @@ export const StatsCard = ({ title, value, icon, description, tooltip }: StatsCar
     return (
       <Tooltip>
         <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="bg-black/90 border border-white/10">
           <p>{tooltip}</p>
         </TooltipContent>
       </Tooltip>
