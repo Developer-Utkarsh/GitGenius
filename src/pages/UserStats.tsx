@@ -36,7 +36,7 @@ const UserStats = () => {
       const reposWithDetails = await Promise.all(
         response.data.map(async (repo) => {
           try {
-            const [languages, commits] = await Promise.all([
+            const [languages, commits, pulls] = await Promise.all([
               octokit.request('GET /repos/{owner}/{repo}/languages', {
                 owner: username,
                 repo: repo.name,
@@ -45,12 +45,19 @@ const UserStats = () => {
                 owner: username,
                 repo: repo.name,
               }),
+              octokit.request('GET /repos/{owner}/{repo}/pulls', {
+                owner: username,
+                repo: repo.name,
+                state: 'all',
+              }),
             ]);
             
             return {
               ...repo,
               languages: languages.data,
               commits: commits.data.length,
+              pulls: pulls.data.length,
+              created_at: repo.created_at,
             };
           } catch (error) {
             console.error(`Error fetching details for ${repo.name}:`, error);
@@ -58,6 +65,8 @@ const UserStats = () => {
               ...repo,
               languages: {},
               commits: 0,
+              pulls: 0,
+              created_at: repo.created_at,
             };
           }
         })
@@ -115,7 +124,7 @@ const UserStats = () => {
           averageLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0) / reposData.length}
           selectedYear={new Date().getFullYear().toString()}
           totalStars={reposData.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0)}
-          totalPRs={0}
+          totalPRs={reposData.reduce((acc, repo) => acc + (repo.pulls || 0), 0)}
           totalCommits={reposData.reduce((acc, repo) => acc + (repo.commits || 0), 0)}
         />
 

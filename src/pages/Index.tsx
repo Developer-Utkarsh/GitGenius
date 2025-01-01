@@ -64,6 +64,7 @@ const Index = () => {
               languages: languages.data,
               commits: commits.data.length,
               pulls: pulls.data.length,
+              created_at: repo.created_at,
             };
           } catch (error) {
             console.error(`Error fetching details for ${repo.name}:`, error);
@@ -72,6 +73,7 @@ const Index = () => {
               languages: {},
               commits: 0,
               pulls: 0,
+              created_at: repo.created_at,
             };
           }
         })
