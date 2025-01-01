@@ -1,18 +1,12 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { octokit } from "@/utils/github";
-import { StatsDisplay } from "@/components/stats-display";
-import { LanguageDistribution } from "@/components/charts/language-distribution";
-import { RepositoryList } from "@/components/repository/repository-list";
-import { Button } from "@/components/ui/button";
-import { Copy, Share2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { YearSelector } from "@/components/year-selector";
 import { useState } from "react";
+import { UserHeader } from "@/components/stats/user-header";
+import { StatsSection } from "@/components/stats/stats-section";
 
 const UserStats = () => {
   const { username } = useParams();
-  const { toast } = useToast();
   const [selectedYear, setSelectedYear] = useState("all");
 
   const { data: userData } = useQuery({
@@ -71,7 +65,6 @@ const UserStats = () => {
               languages: languages.data,
               commits: commits.data.length,
               pulls: pulls.data.length,
-              created_at: repo.created_at,
             };
           } catch (error) {
             console.error(`Error fetching details for ${repo.name}:`, error);
@@ -80,7 +73,6 @@ const UserStats = () => {
               languages: {},
               commits: 0,
               pulls: 0,
-              created_at: repo.created_at,
             };
           }
         })
@@ -89,14 +81,6 @@ const UserStats = () => {
       return reposWithDetails;
     },
   });
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast({
-      title: "Link copied!",
-      description: "The profile link has been copied to your clipboard.",
-    });
-  };
 
   const aggregatedLanguages = reposData?.reduce((acc, repo) => {
     Object.entries(repo.languages || {}).forEach(([lang, bytes]) => {
@@ -114,45 +98,21 @@ const UserStats = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-8 px-4 bg-black">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold tracking-tight text-gradient">
-            {username}'s GitHub Stats
-          </h1>
-          <div className="flex gap-4">
-            <YearSelector
-              years={years}
-              selectedYear={selectedYear}
-              onYearChange={setSelectedYear}
-              accountCreatedYear={accountCreatedYear}
-            />
-            <Button
-              variant="outline"
-              className="gap-2 bg-white/5 hover:bg-white/10"
-              onClick={handleCopyLink}
-            >
-              <Share2 className="h-4 w-4" />
-              <Copy className="h-4 w-4" />
-              Share Profile
-            </Button>
-          </div>
-        </div>
-
-        <StatsDisplay
-          reposCount={reposData.length}
-          languagesCount={Object.keys(aggregatedLanguages).length}
-          totalLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0)}
-          averageLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0) / reposData.length}
+        <UserHeader
+          username={username || ""}
           selectedYear={selectedYear}
-          totalStars={reposData.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0)}
-          totalPRs={reposData.reduce((acc, repo) => acc + (repo.pulls || 0), 0)}
-          totalCommits={reposData.reduce((acc, repo) => acc + (repo.commits || 0), 0)}
+          onYearChange={setSelectedYear}
+          years={years}
+          accountCreatedYear={accountCreatedYear}
         />
 
-        <LanguageDistribution languages={aggregatedLanguages} />
-
-        <RepositoryList repositories={reposData} />
+        <StatsSection
+          reposData={reposData}
+          selectedYear={selectedYear}
+          aggregatedLanguages={aggregatedLanguages}
+        />
       </div>
     </div>
   );

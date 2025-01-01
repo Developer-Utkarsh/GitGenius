@@ -4,11 +4,11 @@
  
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 0 0% 0%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 0 0% 0%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -34,18 +34,14 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background: radial-gradient(circle at 50% 50%, 
-      rgba(17, 24, 39, 1) 0%, 
-      rgba(10, 14, 23, 1) 50%, 
-      rgba(2, 6, 11, 1) 100%
-    );
+    background: black;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-lg border border-white/20 shadow-xl 
-      hover:bg-white/10 transition-all duration-300;
+    @apply bg-black/40 border border-white/10 shadow-xl 
+      hover:bg-black/60 transition-all duration-300;
   }
 
   .glass-card:hover {
@@ -62,6 +58,10 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse;
+  }
+
+  .border-gradient-blue-purple {
+    border-image: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(168, 85, 247, 0.5)) 1;
   }
 }
 
