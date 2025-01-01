@@ -18,6 +18,7 @@ interface Repository {
   private: boolean;
   created_at: string;
   commits?: number;
+  pulls?: number;
 }
 
 interface RepositoryListProps {

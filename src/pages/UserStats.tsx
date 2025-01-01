@@ -35,22 +35,31 @@ const UserStats = () => {
       
       const reposWithDetails = await Promise.all(
         response.data.map(async (repo) => {
-          const [languages, commits] = await Promise.all([
-            octokit.request('GET /repos/{owner}/{repo}/languages', {
-              owner: username,
-              repo: repo.name,
-            }),
-            octokit.request('GET /repos/{owner}/{repo}/commits', {
-              owner: username,
-              repo: repo.name,
-            }),
-          ]);
-          
-          return {
-            ...repo,
-            languages: languages.data,
-            commits: commits.data.length,
-          };
+          try {
+            const [languages, commits] = await Promise.all([
+              octokit.request('GET /repos/{owner}/{repo}/languages', {
+                owner: username,
+                repo: repo.name,
+              }),
+              octokit.request('GET /repos/{owner}/{repo}/commits', {
+                owner: username,
+                repo: repo.name,
+              }),
+            ]);
+            
+            return {
+              ...repo,
+              languages: languages.data,
+              commits: commits.data.length,
+            };
+          } catch (error) {
+            console.error(`Error fetching details for ${repo.name}:`, error);
+            return {
+              ...repo,
+              languages: {},
+              commits: 0,
+            };
+          }
         })
       );
       
