@@ -42,46 +42,49 @@
   }
 }
 
-.glass-card {
-  @apply bg-white/5 backdrop-blur-lg border border-white/20 shadow-xl 
-    hover:bg-white/10 transition-all duration-300 
-    hover:border-gradient-to-r hover:from-blue-500/50 hover:to-purple-500/50;
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-lg border border-white/20 shadow-xl 
+      hover:bg-white/10 transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    border-image: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(168, 85, 247, 0.5)) 1;
+  }
+
+  .stats-card {
+    @apply glass-card p-6 rounded-xl relative overflow-hidden
+      before:content-[''] before:absolute before:inset-0 
+      before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10 
+      before:opacity-0 hover:before:opacity-100 before:transition-opacity 
+      before:duration-300 hover:scale-105 hover:shadow-2xl;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse;
+  }
 }
 
-.stats-card {
-  @apply glass-card p-6 rounded-xl relative overflow-hidden
-    before:content-[''] before:absolute before:inset-0 
-    before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10 
-    before:opacity-0 hover:before:opacity-100 before:transition-opacity 
-    before:duration-300 hover:scale-105 hover:shadow-2xl;
-}
+@layer utilities {
+  .animate-in {
+    animation: fade-in 0.5s ease-out;
+  }
 
-.border-gradient-to-r {
-  border-image: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to)) 1;
-}
+  .animate-up {
+    animation: fade-up 0.5s ease-out;
+  }
 
-.border-gradient-to-br {
-  border-image: linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to)) 1;
-}
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 
-.animate-in {
-  animation: fade-in 0.5s ease-out;
-}
+  .animate-spin-slow {
+    animation: spin 20s linear infinite;
+  }
 
-.animate-up {
-  animation: fade-up 0.5s ease-out;
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-spin-slow {
-  animation: spin 20s linear infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
 }
 
 @keyframes fade-in {
@@ -129,8 +132,3 @@
     transform: translateY(0px);
   }
 }
-
-.text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse;
-}
-
