@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface GitHubSearchProps {
   onSearch: (username: string) => void;
@@ -10,12 +11,13 @@ interface GitHubSearchProps {
 }
 
 const USERNAME_REGEX = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
-const DEBOUNCE_DELAY = 1000; // 1 second delay
+const DEBOUNCE_DELAY = 2000; // 2 seconds delay
 
 export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchProps) => {
   const [username, setUsername] = useState("");
   const [debouncedUsername, setDebouncedUsername] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -29,7 +31,6 @@ export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchPr
 
   useEffect(() => {
     if (debouncedUsername) {
-      // Check if username exists before triggering search
       fetch(`https://api.github.com/users/${debouncedUsername}`)
         .then(response => {
           if (response.status === 404) {
@@ -39,6 +40,7 @@ export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchPr
             throw new Error("Error checking username");
           }
           onSearch(debouncedUsername);
+          navigate(`/${debouncedUsername}`);
         })
         .catch(error => {
           if (error.message === "User not found") {
@@ -57,7 +59,7 @@ export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchPr
           setUsername("");
         });
     }
-  }, [debouncedUsername, onSearch, toast]);
+  }, [debouncedUsername, onSearch, toast, navigate]);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
@@ -74,13 +76,13 @@ export const GitHubSearch = ({ onSearch, isDisabled, minLength }: GitHubSearchPr
 
   return (
     <div className="relative w-full max-w-2xl mx-auto animate-fade-in">
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
         <Search className="h-5 w-5 text-gray-400" />
       </div>
       <Input
         type="text"
         placeholder="Enter GitHub username..."
-        className="pl-10 pr-4 py-2 w-full bg-white/5 border-gray-700/50 backdrop-blur-sm focus:border-primary/50 transition-all duration-200"
+        className="pl-10 pr-4 py-2 w-full bg-white/5 border-gray-700/50 focus:border-primary/50 transition-all duration-200"
         value={username}
         onChange={handleUsernameChange}
         minLength={minLength}
