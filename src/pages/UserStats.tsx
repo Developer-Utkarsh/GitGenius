@@ -1,24 +1,50 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { octokit } from "@/utils/github";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserHeader } from "@/components/stats/user-header";
 import { StatsSection } from "@/components/stats/stats-section";
 import { Repository } from "@/types/github";
+import { useToast } from "@/hooks/use-toast";
 
 const UserStats = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedYear, setSelectedYear] = useState("all");
+
+  // Redirect to home if no username is provided
+  useEffect(() => {
+    if (!username) {
+      navigate('/');
+      toast({
+        title: "Error",
+        description: "Please enter a GitHub username",
+        variant: "destructive",
+      });
+    }
+  }, [username, navigate, toast]);
 
   const { data: userData } = useQuery({
     queryKey: ["github-user", username],
     queryFn: async () => {
       if (!username) return null;
-      const response = await octokit.request('GET /users/{username}', {
-        username,
-      });
-      return response.data;
+      try {
+        const response = await octokit.request('GET /users/{username}', {
+          username,
+        });
+        return response.data;
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "User not found or API error occurred",
+          variant: "destructive",
+        });
+        navigate('/');
+        return null;
+      }
     },
+    enabled: !!username,
   });
 
   const accountCreatedYear = userData ? new Date(userData.created_at).getFullYear() : new Date().getFullYear();
@@ -32,66 +58,68 @@ const UserStats = () => {
     queryKey: ["github-repos", username, selectedYear],
     queryFn: async () => {
       if (!username) return null;
-      const response = await octokit.request('GET /users/{username}/repos', {
-        username,
-        per_page: 100,
-        sort: 'updated',
-      });
-      
-      const reposWithDetails = await Promise.all(
-        response.data.map(async (repo) => {
-          try {
-            const [languages, commits, pulls] = await Promise.all([
-              octokit.request('GET /repos/{owner}/{repo}/languages', {
-                owner: username,
-                repo: repo.name,
-              }),
-              octokit.request('GET /repos/{owner}/{repo}/commits', {
-                owner: username,
-                repo: repo.name,
-                ...(selectedYear !== "all" && {
-                  since: `${selectedYear}-01-01T00:00:00Z`,
-                  until: `${selectedYear}-12-31T23:59:59Z`,
+      try {
+        const response = await octokit.request('GET /users/{username}/repos', {
+          username,
+          per_page: 100,
+          sort: 'updated',
+        });
+        
+        const reposWithDetails = await Promise.all(
+          response.data.map(async (repo) => {
+            try {
+              const [languages, commits, pulls] = await Promise.all([
+                octokit.request('GET /repos/{owner}/{repo}/languages', {
+                  owner: username,
+                  repo: repo.name,
                 }),
-              }),
-              octokit.request('GET /repos/{owner}/{repo}/pulls', {
-                owner: username,
-                repo: repo.name,
-                state: 'all',
-              }),
-            ]);
-            
-            // Ensure created_at is present in the returned object
-            return {
-              ...repo,
-              languages: languages.data,
-              commits: commits.data.length,
-              pulls: pulls.data.length,
-              created_at: repo.created_at || new Date().toISOString(), // Provide default if missing
-            } as Repository;
-          } catch (error) {
-            console.error(`Error fetching details for ${repo.name}:`, error);
-            return {
-              ...repo,
-              languages: {},
-              commits: 0,
-              pulls: 0,
-              created_at: new Date().toISOString(), // Provide default if error
-            } as Repository;
-          }
-        })
-      );
-      
-      return reposWithDetails;
+                octokit.request('GET /repos/{owner}/{repo}/commits', {
+                  owner: username,
+                  repo: repo.name,
+                  ...(selectedYear !== "all" && {
+                    since: `${selectedYear}-01-01T00:00:00Z`,
+                    until: `${selectedYear}-12-31T23:59:59Z`,
+                  }),
+                }),
+                octokit.request('GET /repos/{owner}/{repo}/pulls', {
+                  owner: username,
+                  repo: repo.name,
+                  state: 'all',
+                }),
+              ]);
+              
+              return {
+                ...repo,
+                languages: languages.data,
+                commits: commits.data.length,
+                pulls: pulls.data.length,
+                created_at: repo.created_at || new Date().toISOString(),
+              } as Repository;
+            } catch (error) {
+              console.error(`Error fetching details for ${repo.name}:`, error);
+              return {
+                ...repo,
+                languages: {},
+                commits: 0,
+                pulls: 0,
+                created_at: repo.created_at || new Date().toISOString(),
+              } as Repository;
+            }
+          })
+        );
+        
+        return reposWithDetails;
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch repositories",
+          variant: "destructive",
+        });
+        return [];
+      }
     },
+    enabled: !!username && !!userData,
   });
-
-  const aggregatedLanguages = reposData?.reduce((acc, repo) => {
-    Object.entries(repo.languages || {}).forEach(([lang, bytes]) => {
-      acc[lang] = (acc[lang] || 0) + (bytes as number);
-    });
-    return acc;
-  }, {} as Record<string, number>) || {};
 
   if (!userData || !reposData) {
     return (
@@ -105,7 +133,7 @@ const UserStats = () => {
     <div className="min-h-screen py-8 px-4 bg-black">
       <div className="max-w-7xl mx-auto space-y-8">
         <UserHeader
-          username={username || ""}
+          username={username}
           selectedYear={selectedYear}
           onYearChange={setSelectedYear}
           years={years}
@@ -115,7 +143,12 @@ const UserStats = () => {
         <StatsSection
           reposData={reposData}
           selectedYear={selectedYear}
-          aggregatedLanguages={aggregatedLanguages}
+          aggregatedLanguages={reposData.reduce((acc, repo) => {
+            Object.entries(repo.languages || {}).forEach(([lang, bytes]) => {
+              acc[lang] = (acc[lang] || 0) + (bytes as number);
+            });
+            return acc;
+          }, {} as Record<string, number>)}
         />
       </div>
     </div>
