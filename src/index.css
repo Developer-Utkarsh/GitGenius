@@ -4,11 +4,11 @@
  
 @layer base {
   :root {
-    --background: 0 0% 0%;
+    --background: 0 0% 7%;
     --foreground: 210 40% 98%;
-    --card: 0 0% 0%;
+    --card: 0 0% 5%;
     --card-foreground: 210 40% 98%;
-    --popover: 0 0% 0%;
+    --popover: 0 0% 7%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -34,34 +34,71 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background: black;
   }
 }
 
 @layer components {
+  .home-background {
+    background: radial-gradient(circle at center, #1a2b4d 0%, #0f172a 100%);
+  }
+
+  .profile-background {
+    background-color: #121212;
+  }
+
   .glass-card {
-    @apply bg-black/40 border border-white/10 shadow-xl 
-      hover:bg-black/60 transition-all duration-300;
+    @apply bg-black/40 border border-transparent shadow-xl 
+      transition-all duration-300 relative overflow-hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 
+      transition-opacity duration-300;
+  }
+
+  .glass-card:hover::before {
+    @apply opacity-100;
   }
 
   .glass-card:hover {
+    @apply bg-black/60;
     border-image: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(168, 85, 247, 0.5)) 1;
   }
 
   .stats-card {
-    @apply glass-card p-6 rounded-xl relative overflow-hidden
-      before:content-[''] before:absolute before:inset-0 
-      before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10 
-      before:opacity-0 hover:before:opacity-100 before:transition-opacity 
-      before:duration-300 hover:scale-105 hover:shadow-2xl;
+    @apply glass-card p-6 rounded-xl;
+    background: linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(23, 27, 33, 0.95) 100%);
+    border: 1px solid transparent;
+    border-image: linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2)) 1;
+  }
+
+  .stats-card:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1));
+    border-image: linear-gradient(to right, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.8)) 1;
+  }
+
+  .stats-card:hover .text-gradient {
+    @apply text-white;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400;
   }
 
-  .border-gradient-blue-purple {
-    border-image: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(168, 85, 247, 0.5)) 1;
+  .year-picker {
+    @apply bg-black/50 border border-white/10 rounded-lg p-2 
+      hover:bg-black/70 transition-all duration-300;
+  }
+
+  .year-picker-button {
+    @apply px-4 py-2 rounded-md transition-all duration-300
+      hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-purple-500/20
+      active:scale-95;
+  }
+
+  .year-picker-button.selected {
+    @apply bg-gradient-to-r from-blue-500 to-purple-500 text-white;
   }
 }
 
@@ -76,14 +113,6 @@
 
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  .animate-spin-slow {
-    animation: spin 20s linear infinite;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
   }
 }
 
@@ -109,26 +138,5 @@
   }
   50% {
     opacity: .7;
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
   }
 }
