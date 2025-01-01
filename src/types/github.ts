@@ -15,7 +15,7 @@ export interface Repository {
   description: string | null;
   fork: boolean;
   url: string;
-  created_at?: string;
+  created_at: string; // Making this required and ensuring it always has a value
   updated_at?: string;
   pushed_at?: string;
   homepage: string | null;
