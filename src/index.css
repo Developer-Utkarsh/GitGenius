@@ -47,14 +47,14 @@
   }
 
   .glass-card {
-    @apply bg-black/40 border border-transparent shadow-xl 
-      transition-all duration-300 relative overflow-hidden;
+    @apply bg-black/40 border border-transparent rounded-xl shadow-xl 
+      transition-all duration-300 relative overflow-hidden backdrop-blur-sm;
   }
 
   .glass-card::before {
     content: '';
     @apply absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 
-      transition-opacity duration-300;
+      transition-opacity duration-300 rounded-xl;
   }
 
   .glass-card:hover::before {
@@ -62,8 +62,9 @@
   }
 
   .glass-card:hover {
-    @apply bg-black/60;
+    @apply bg-black/60 transform scale-[1.02];
     border-image: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(168, 85, 247, 0.5)) 1;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
   }
 
   .stats-card {
@@ -76,10 +77,12 @@
   .stats-card:hover {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1));
     border-image: linear-gradient(to right, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.8)) 1;
+    transform: translateY(-2px);
   }
 
   .stats-card:hover .text-gradient {
     @apply text-white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   }
 
   .text-gradient {
