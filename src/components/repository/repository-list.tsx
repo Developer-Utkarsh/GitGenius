@@ -16,6 +16,8 @@ interface Repository {
     avatar_url: string;
   };
   private: boolean;
+  created_at: string;
+  commits?: number;
 }
 
 interface RepositoryListProps {
@@ -54,6 +56,10 @@ export const RepositoryList = ({ repositories }: RepositoryListProps) => {
             stars={repo.stargazers_count || 0}
             language={repo.language || "Unknown"}
             branches={1}
+            created_at={repo.created_at}
+            commits={repo.commits || 0}
+            languages={repo.languages || {}}
+            loc={Object.values(repo.languages || {}).reduce((acc, curr) => acc + curr, 0)}
           />
         ))}
       </div>
