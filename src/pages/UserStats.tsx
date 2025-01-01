@@ -4,6 +4,7 @@ import { octokit } from "@/utils/github";
 import { useState } from "react";
 import { UserHeader } from "@/components/stats/user-header";
 import { StatsSection } from "@/components/stats/stats-section";
+import { Repository } from "@/types/github";
 
 const UserStats = () => {
   const { username } = useParams();
@@ -60,12 +61,14 @@ const UserStats = () => {
               }),
             ]);
             
+            // Ensure created_at is present in the returned object
             return {
               ...repo,
               languages: languages.data,
               commits: commits.data.length,
               pulls: pulls.data.length,
-            };
+              created_at: repo.created_at || new Date().toISOString(), // Provide default if missing
+            } as Repository;
           } catch (error) {
             console.error(`Error fetching details for ${repo.name}:`, error);
             return {
@@ -73,7 +76,8 @@ const UserStats = () => {
               languages: {},
               commits: 0,
               pulls: 0,
-            };
+              created_at: new Date().toISOString(), // Provide default if error
+            } as Repository;
           }
         })
       );
