@@ -15,7 +15,7 @@ export interface Repository {
   description: string | null;
   fork: boolean;
   url: string;
-  created_at?: string; // Made optional to match API response
+  created_at?: string;
   updated_at?: string;
   pushed_at?: string;
   homepage: string | null;
