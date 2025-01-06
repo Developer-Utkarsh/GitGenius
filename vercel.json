@@ -11,9 +11,5 @@
       "src": "/api/auth/(.*)",
       "dest": "/src/api/auth/$1.ts"
     }
-  ],
-  "env": {
-    "GITHUB_CLIENT_ID": "@GITHUB_CLIENT_ID",
-    "GITHUB_CLIENT_SECRET": "@GITHUB_CLIENT_SECRET"
-  }
+  ]
 }
