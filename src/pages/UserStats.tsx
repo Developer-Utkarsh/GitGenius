@@ -16,7 +16,7 @@ const UserStats = () => {
   // Redirect to home if no username is provided
   useEffect(() => {
     if (!username) {
-      navigate('/');
+      navigate("/");
       toast({
         title: "Error",
         description: "Please enter a GitHub username",
@@ -30,7 +30,7 @@ const UserStats = () => {
     queryFn: async () => {
       if (!username) return null;
       try {
-        const response = await octokit.request('GET /users/{username}', {
+        const response = await octokit.request("GET /users/{username}", {
           username,
         });
         return response.data;
@@ -40,14 +40,16 @@ const UserStats = () => {
           description: "User not found or API error occurred",
           variant: "destructive",
         });
-        navigate('/');
+        navigate("/");
         return null;
       }
     },
     enabled: !!username,
   });
 
-  const accountCreatedYear = userData ? new Date(userData.created_at).getFullYear() : new Date().getFullYear();
+  const accountCreatedYear = userData
+    ? new Date(userData.created_at).getFullYear()
+    : new Date().getFullYear();
   const currentYear = new Date().getFullYear();
   const years = Array.from(
     { length: currentYear - accountCreatedYear + 1 },
@@ -59,21 +61,21 @@ const UserStats = () => {
     queryFn: async () => {
       if (!username) return null;
       try {
-        const response = await octokit.request('GET /users/{username}/repos', {
+        const response = await octokit.request("GET /users/{username}/repos", {
           username,
           per_page: 100,
-          sort: 'updated',
+          sort: "updated",
         });
-        
+
         const reposWithDetails = await Promise.all(
           response.data.map(async (repo) => {
             try {
               const [languages, commits, pulls] = await Promise.all([
-                octokit.request('GET /repos/{owner}/{repo}/languages', {
+                octokit.request("GET /repos/{owner}/{repo}/languages", {
                   owner: username,
                   repo: repo.name,
                 }),
-                octokit.request('GET /repos/{owner}/{repo}/commits', {
+                octokit.request("GET /repos/{owner}/{repo}/commits", {
                   owner: username,
                   repo: repo.name,
                   ...(selectedYear !== "all" && {
@@ -81,13 +83,13 @@ const UserStats = () => {
                     until: `${selectedYear}-12-31T23:59:59Z`,
                   }),
                 }),
-                octokit.request('GET /repos/{owner}/{repo}/pulls', {
+                octokit.request("GET /repos/{owner}/{repo}/pulls", {
                   owner: username,
                   repo: repo.name,
-                  state: 'all',
+                  state: "all",
                 }),
               ]);
-              
+
               return {
                 ...repo,
                 languages: languages.data,
@@ -107,7 +109,7 @@ const UserStats = () => {
             }
           })
         );
-        
+
         return reposWithDetails;
       } catch (error) {
         toast({
@@ -130,7 +132,9 @@ const UserStats = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 bg-black">
+    <div className="min-h-screen py-8 px-4 relative h-full w-full ">
+      <div className="absolute top-0 z-[-2] h-screen w-screen bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
+
       <div className="max-w-7xl mx-auto space-y-8">
         <UserHeader
           username={username}

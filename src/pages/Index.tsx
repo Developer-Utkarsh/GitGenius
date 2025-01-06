@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { octokit, isAuthenticated } from "@/utils/github";
 import { GitHubAuth } from "@/components/github-auth";
@@ -13,52 +19,59 @@ const MIN_USERNAME_LENGTH = 3;
 
 const Index = () => {
   const [debouncedUsername, setDebouncedUsername] = useState("");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedYear, setSelectedYear] = useState(
+    new Date().getFullYear().toString()
+  );
   const { toast } = useToast();
+
+  const { data: isAuth = false } = useQuery({
+    queryKey: ["auth-status"],
+    queryFn: isAuthenticated,
+  });
 
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ["github-user", debouncedUsername],
     queryFn: async () => {
       if (!debouncedUsername) return null;
-      const response = await octokit.request('GET /users/{username}', {
+      const response = await octokit.request("GET /users/{username}", {
         username: debouncedUsername,
       });
       return response.data;
     },
-    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH && isAuthenticated(),
+    enabled: debouncedUsername.length >= MIN_USERNAME_LENGTH && isAuth,
   });
 
   const { data: reposData, isLoading: reposLoading } = useQuery({
     queryKey: ["github-repos", debouncedUsername, selectedYear],
     queryFn: async () => {
       if (!debouncedUsername) return null;
-      const response = await octokit.request('GET /users/{username}/repos', {
+      const response = await octokit.request("GET /users/{username}/repos", {
         username: debouncedUsername,
         per_page: 100,
-        sort: 'updated',
+        sort: "updated",
       });
-      
+
       const reposWithDetails = await Promise.all(
         response.data.map(async (repo) => {
           try {
             const [languages, commits, pulls] = await Promise.all([
-              octokit.request('GET /repos/{owner}/{repo}/languages', {
+              octokit.request("GET /repos/{owner}/{repo}/languages", {
                 owner: debouncedUsername,
                 repo: repo.name,
               }),
-              octokit.request('GET /repos/{owner}/{repo}/commits', {
+              octokit.request("GET /repos/{owner}/{repo}/commits", {
                 owner: debouncedUsername,
                 repo: repo.name,
                 since: `${selectedYear}-01-01T00:00:00Z`,
                 until: `${selectedYear}-12-31T23:59:59Z`,
               }),
-              octokit.request('GET /repos/{owner}/{repo}/pulls', {
+              octokit.request("GET /repos/{owner}/{repo}/pulls", {
                 owner: debouncedUsername,
                 repo: repo.name,
-                state: 'all',
+                state: "all",
               }),
             ]);
-            
+
             return {
               ...repo,
               languages: languages.data,
@@ -78,10 +91,10 @@ const Index = () => {
           }
         })
       );
-      
+
       return reposWithDetails;
     },
-    enabled: !!userData && isAuthenticated(),
+    enabled: !!userData && isAuth,
   });
 
   const years = Array.from(
@@ -89,20 +102,28 @@ const Index = () => {
     (_, i) => new Date().getFullYear() - i
   );
 
-  const aggregatedLanguages = reposData?.reduce((acc, repo) => {
-    Object.entries(repo.languages || {}).forEach(([lang, bytes]) => {
-      acc[lang] = (acc[lang] || 0) + (bytes as number);
-    });
-    return acc;
-  }, {} as Record<string, number>) || {};
+  const aggregatedLanguages =
+    reposData?.reduce((acc, repo) => {
+      Object.entries(repo.languages || {}).forEach(([lang, bytes]) => {
+        acc[lang] = (acc[lang] || 0) + (bytes as number);
+      });
+      return acc;
+    }, {} as Record<string, number>) || {};
 
-  const totalStars = reposData?.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0) || 0;
-  const totalPRs = reposData?.reduce((acc, repo) => acc + (repo.pulls || 0), 0) || 0;
-  const totalCommits = reposData?.reduce((acc, repo) => acc + (repo.commits || 0), 0) || 0;
+  const totalStars =
+    reposData?.reduce((acc, repo) => acc + (repo.stargazers_count || 0), 0) ||
+    0;
+  const totalPRs =
+    reposData?.reduce((acc, repo) => acc + (repo.pulls || 0), 0) || 0;
+  const totalCommits =
+    reposData?.reduce((acc, repo) => acc + (repo.commits || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen py-8 px-4 relative overflow-hidden">
+      <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+      <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+
+      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         <div className="text-center space-y-4 animate-fade-in">
           <h1 className="text-4xl font-bold tracking-tight text-gradient">
             GitHub Stats Analyzer
@@ -112,27 +133,14 @@ const Index = () => {
           </p>
         </div>
 
-        <GitHubAuth />
+        {!isAuth && <GitHubAuth />}
 
         <div className="space-y-6">
           <GitHubSearch
             onSearch={setDebouncedUsername}
-            isDisabled={!isAuthenticated()}
+            isDisabled={!isAuth}
             minLength={MIN_USERNAME_LENGTH}
           />
-
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[180px] bg-white/5 border-gray-700/50">
-              <SelectValue placeholder="Select Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {(userLoading || reposLoading) && (
@@ -146,8 +154,14 @@ const Index = () => {
             <StatsDisplay
               reposCount={reposData.length}
               languagesCount={Object.keys(aggregatedLanguages).length}
-              totalLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0)}
-              averageLoc={Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0) / reposData.length}
+              totalLoc={Object.values(aggregatedLanguages).reduce(
+                (a, b) => a + b,
+                0
+              )}
+              averageLoc={
+                Object.values(aggregatedLanguages).reduce((a, b) => a + b, 0) /
+                reposData.length
+              }
               selectedYear={selectedYear}
               totalStars={totalStars}
               totalPRs={totalPRs}
