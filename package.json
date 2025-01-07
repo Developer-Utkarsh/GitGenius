@@ -11,7 +11,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build && cp dist/index.html dist/200.html"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

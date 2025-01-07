@@ -7,6 +7,10 @@ export default async function handler(
   if (request.method === "POST") {
     const { code } = request.body;
 
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
     try {
       const tokenResponse = await fetch(
         "https://github.com/login/oauth/access_token",
