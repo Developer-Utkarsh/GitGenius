@@ -1,9 +1,10 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse
-) {
+interface TokenResponse {
+  access_token?: string;
+}
+
+const handler = async (request: VercelRequest, response: VercelResponse) => {
   if (request.method === "POST") {
     const { code } = request.body;
 
@@ -28,7 +29,7 @@ export default async function handler(
         }
       );
 
-      const data = await tokenResponse.json();
+      const data = (await tokenResponse.json()) as TokenResponse;
       if (data.access_token) {
         return response.status(200).json({ token: data.access_token });
       }
@@ -41,4 +42,6 @@ export default async function handler(
   }
 
   return response.status(405).json({ error: "Method not allowed" });
-}
+};
+
+module.exports = handler;
