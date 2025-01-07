@@ -3,7 +3,11 @@
   "builds": [
     {
       "src": "src/api/**/*.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "helpers": true,
+        "includeFiles": ["dist/**"]
+      }
     },
     {
       "src": "package.json",
