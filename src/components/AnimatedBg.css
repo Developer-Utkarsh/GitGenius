@@ -1,0 +1,46 @@
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-bg {
+  background: radial-gradient(circle at center, #0f172a, #020617);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+}
+
+.animated-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(56, 189, 248, 0.03) 0%,
+    rgba(59, 130, 246, 0.03) 25%,
+    rgba(99, 102, 241, 0.03) 50%,
+    rgba(139, 92, 246, 0.03) 75%,
+    rgba(168, 85, 247, 0.03) 100%
+  );
+  filter: blur(80px);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  animation: gradientAnimation 20s ease infinite;
+}
+
+.animated-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent, #000);
+  opacity: 0.8;
+}

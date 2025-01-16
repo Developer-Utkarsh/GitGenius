@@ -1,0 +1,33 @@
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    /* Add custom styles for markdown content */
+    .markdown-content {
+      @apply text-sm leading-relaxed;
+    }
+    
+    .markdown-content p {
+      @apply mb-2 last:mb-0;
+    }
+    
+    .markdown-content ul {
+      @apply mb-2 last:mb-0 space-y-1;
+    }
+    
+    .markdown-content li {
+      @apply ml-4;
+    }
+    
+    .markdown-content code {
+      @apply rounded px-1 py-0.5 bg-muted/50 text-xs;
+    }
+    
+    .markdown-content pre {
+      @apply p-2 my-2 rounded bg-muted/50;
+    }
+    
+    .markdown-content pre code {
+      @apply text-sm block p-0 bg-transparent;
+    }
