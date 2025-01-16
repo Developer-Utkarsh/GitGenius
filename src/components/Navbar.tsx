@@ -74,7 +74,7 @@ export function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <a
-                        href="https://github.com/yourusername/gitgenius"
+                        href="https://github.com/Developer-Utkarsh/GitGenius/"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
