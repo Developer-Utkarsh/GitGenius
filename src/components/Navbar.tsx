@@ -41,7 +41,7 @@ export function Navbar() {
               <div className="flex items-center gap-6">
                 <div className="hidden md:flex items-center gap-6">
                   <a
-                    href="https://github.com/yourusername/gitgenius"
+                    href="https://github.com/Developer-Utkarsh/Developer-Utkarsh/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
